@@ -1,0 +1,46 @@
+{
+  "name": "thunk-ratelimiter",
+  "version": "1.0.0",
+  "description": "Abstract rate limiter backed by thunk-redis.",
+  "main": "index.js",
+  "authors": [
+    "Yan Qing <admin@zensh.com>"
+  ],
+  "scripts": {
+    "test": "standard && gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/thunks/thunk-ratelimiter.git"
+  },
+  "keywords": [
+    "ratelimiter",
+    "redis",
+    "thunk"
+  ],
+  "engines": {
+    "node": ">= 0.10.x"
+  },
+  "dependencies": {
+    "thunks": "^3.3.1"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-mocha": "^2.1.1",
+    "gulp-sequence": "^0.3.2",
+    "mocha": "^2.2.5",
+    "thunk-redis": "^0.10.2",
+    "standard": "^4.2.1"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/thunks/thunk-ratelimiter/issues"
+  },
+  "homepage": "https://github.com/thunks/thunk-ratelimiter",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "test",
+    "gulpfile.js"
+  ]
+}
