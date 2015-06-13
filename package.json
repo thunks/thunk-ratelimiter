@@ -1,6 +1,6 @@
 {
   "name": "thunk-ratelimiter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Abstract rate limiter backed by thunk-redis.",
   "main": "index.js",
   "authors": [

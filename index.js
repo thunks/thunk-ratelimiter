@@ -9,7 +9,7 @@
  */
 var fs = require('fs')
 var thunk = require('thunks')()
-var limitScript = stripBOM(fs.readFileSync('ratelimite.lua', {encoding: 'utf8'}))
+var limitScript = stripBOM(fs.readFileSync(__dirname + '/ratelimite.lua', {encoding: 'utf8'}))
 
 module.exports = Limiter
 
