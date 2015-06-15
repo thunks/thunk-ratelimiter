@@ -192,12 +192,12 @@ describe('thunk-ratelimiter', function () {
 
   describe('when multiple concurrent clients modify the limit', function () {
     var id = 'something'
-    var clientsCount = 7
-    var max = 5
-    var limits = []
+    var clientsCount = 10
+    var max = 10000
+    var limiters = []
 
     for (var i = 0; i < clientsCount; ++i) {
-      limits.push(new Limiter({
+      limiters.push(new Limiter({
         duration: 10000,
         max: max,
         db: redis.createClient()
@@ -206,20 +206,86 @@ describe('thunk-ratelimiter', function () {
 
     it('should prevent race condition and properly set the expected value', function (done) {
       // Warm up and prepare the data.
-      limits[0].get(id)(function (err, res) {
+      var i
+      var count = max
+      var tasks = []
+      for (i = max + 100; i >= 0; i--) tasks.push(getLimit())
+
+      function getLimit () {
+        return limiters[~~(Math.random() * 10)].get(id)(function (err, res) {
+          assert.strictEqual(err, null)
+          assert.strictEqual(res.remaining, Math.max(count--, 0))
+        })
+      }
+
+      thunk.all(tasks)(done)
+    })
+  })
+
+  describe('limit with vary parameters', function () {
+    it('should work with vary parameters for different id', function (done) {
+      var limiter = new Limiter({
+        duration: 10000,
+        max: 5,
+        db: db
+      })
+      limiter.get('something1')(function (err, res) {
         assert.strictEqual(err, null)
         assert.strictEqual(res.remaining, 5)
-        // Simulate multiple concurrent requests.
-        return thunk.all(limits.map(function (limit) { return limit.get(id) }))
+        return limiter.get('something2', 10, 10000)
       })(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res[0].remaining, 4)
-        assert.strictEqual(res[1].remaining, 3)
-        assert.strictEqual(res[2].remaining, 2)
-        assert.strictEqual(res[3].remaining, 1)
-        assert.strictEqual(res[4].remaining, 0)
-        assert.strictEqual(res[5].remaining, 0)
-        assert.strictEqual(res[6].remaining, 0)
+        assert.strictEqual(res.remaining, 10)
+        return limiter.get('something3', 20, 10000)
+      })(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res.remaining, 20)
+      })(done)
+    })
+
+    it('should keep limit with vary parameters for the same id', function (done) {
+      var id = 'something'
+      var limiter = new Limiter({
+        duration: 1000,
+        max: 5,
+        db: db
+      })
+      limiter.get(id)(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res.remaining, 5)
+        return limiter.get(id, 10, 10000)
+      })(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res.remaining, 4)
+        return limiter.get(id, 20, 10000)
+      })(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res.remaining, 3)
+      })(done)
+    })
+
+    it('should refresh limit with vary parameters for the same id when the duration is exceeded', function (done) {
+      var id = 'something'
+      var limiter = new Limiter({
+        duration: 1000,
+        max: 5,
+        db: db
+      })
+      limiter.get(id)(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res.remaining, 5)
+        return limiter.get(id, 10, 10000)
+      })(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res.remaining, 4)
+        return thunk.seq(thunk.delay(1100), limiter.get(id, 10, 10000))
+      })(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res[1].remaining, 10)
+        return limiter.get(id, 10, 10000)
+      })(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res.remaining, 9)
       })(done)
     })
   })

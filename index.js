@@ -9,7 +9,7 @@
  */
 var fs = require('fs')
 var thunk = require('thunks')()
-var limitScript = stripBOM(fs.readFileSync(__dirname + '/ratelimite.lua', {encoding: 'utf8'}))
+var limitScript = fs.readFileSync(__dirname + '/ratelimite.lua', {encoding: 'utf8'})
 
 module.exports = Limiter
 
@@ -46,31 +46,32 @@ Limiter.prototype.loadScript = function () {
 }
 
  /**
-  * get limit with `id`:
+  * get limit object with `id`
   *
-  *  - `id` {String} identifier being limited
-  *
-  * @param {Object} opts
+  * @param {String} `id` {String} identifier being limited
+  * @param {Number} `max` {Number} max requests within `duration`, default to `this.max`
+  * @param {Number} `duration` {Number} of limit in milliseconds, default to `this.duration`
   * @api public
   */
 
-Limiter.prototype.get = function (id) {
+Limiter.prototype.get = function (id, max, duration) {
+  id = this.prefix + ':' + id
+  max = max > 0 ? max : this.max
+  duration = duration > 0 ? duration : this.duration
   return thunk.call(this, this.limitScript || this.loadScript())(function (err, luaSHA) {
     if (err) throw err
+    var db = this.db
     return function (done) {
-      this.db.evalsha(luaSHA, 1, this.prefix + ':' + id, this.max, this.duration, Date.now())(function (err, res) {
+      db.evalsha(luaSHA, 1, id, max, duration, Date.now())(function (err, res) {
         if (err) return done(err)
-        done(null, {
-          remaining: res[0],
-          total: res[1],
-          reset: res[2]
-        })
+        done(null, new Limit(res[0], res[1], res[2]))
       })
     }
   })
 }
 
-function stripBOM (content) {
-  if (content.charCodeAt(0) === 0xFEFF) content = content.slice(1)
-  return content
+function Limit (remaining, total, reset) {
+  this.remaining = remaining
+  this.total = total
+  this.reset = reset
 }

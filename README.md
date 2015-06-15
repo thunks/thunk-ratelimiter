@@ -57,11 +57,11 @@ var limiter = new Limiter({db: db})
 ```
 
 - `options.db`: *required*, Type: `Object`, redis connection instance.
-- `options.max`: *Optional*, Type: `Number`, max requests within `duration`, Default: `2500`.
-- `options.duration`: *Optional*, Type: `Number`, of limit in milliseconds, Default: `3600000`.
-- `options.prefix`: *Optional*, Type: `String`, redis key namespace, Default: `LIMIT`.
+- `options.max`: *Optional*, Type: `Number`, max requests within `duration`, default to `2500`.
+- `options.duration`: *Optional*, Type: `Number`, of limit in milliseconds, default to `3600000`.
+- `options.prefix`: *Optional*, Type: `String`, redis key namespace, default to `LIMIT`.
 
-### limiter.get(id)
+### limiter.get(id[, max, duration])
 
 Return a thunk function that guarantee a limiter result.
 
@@ -72,6 +72,8 @@ var limiter.get('_userIdxxx')(function (err, limit) {
 ```
 
 - `id`: *required*, Type: `String`, the identifier to limit against (typically a user id)
+- `max`: *Optional*, Type: `Number`, max requests within `duration`, default to `options.max`.
+- `duration`: *Optional*, Type: `Number`, of limit in milliseconds, default to `options.duration`.
 
 **Result Object:**
 
