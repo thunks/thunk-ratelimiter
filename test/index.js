@@ -3,9 +3,9 @@
 //
 // **License:** MIT
 
-/*global describe, it, after, beforeEach*/
+/* global describe, it, after, beforeEach */
 
-/**!
+/**
  * modified from https://github.com/tj/node-ratelimiter
  *
  * Authors:

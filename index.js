@@ -3,7 +3,7 @@
 //
 // **License:** MIT
 
-/**!
+/**
  * inspire by https://github.com/tj/node-ratelimiter
  *
  */
@@ -45,14 +45,14 @@ Limiter.prototype.loadScript = function () {
   })
 }
 
- /**
-  * get limit object with `id`
-  *
-  * @param {String} `id` {String} identifier being limited
-  * @param {Number} `max` {Number} max requests within `duration`, default to `this.max`
-  * @param {Number} `duration` {Number} of limit in milliseconds, default to `this.duration`
-  * @api public
-  */
+/**
+ * get limit object with `id`
+ *
+ * @param {String} `id` {String} identifier being limited
+ * @param {Number} `max` {Number} max requests within `duration`, default to `this.max`
+ * @param {Number} `duration` {Number} of limit in milliseconds, default to `this.duration`
+ * @api public
+ */
 
 Limiter.prototype.get = function (id, max, duration) {
   id = this.prefix + ':' + id
