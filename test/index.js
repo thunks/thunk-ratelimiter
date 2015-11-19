@@ -3,7 +3,7 @@
 //
 // **License:** MIT
 
-/* global describe, it, after, beforeEach */
+/* global describe, it, before, after, beforeEach */
 
 /**
  * modified from https://github.com/tj/node-ratelimiter
@@ -37,10 +37,9 @@ describe('thunk-ratelimiter', function () {
     it('should represent the total limit per reset period', function (done) {
       var id = 'something'
       var limiter = new Limiter({
-        max: 5,
-        db: db
+        max: 5
       })
-      limiter.get(id)(function (err, res) {
+      limiter.connect(db).get(id)(function (err, res) {
         assert.strictEqual(err, null)
         assert.strictEqual(res.total, 5)
       })(done)
@@ -52,10 +51,9 @@ describe('thunk-ratelimiter', function () {
       var id = 'something'
       var limiter = new Limiter({
         max: 5,
-        duration: 100000,
-        db: db
+        duration: 100000
       })
-      limiter.get(id)(function (err, res) {
+      limiter.connect(db).get(id)(function (err, res) {
         assert.strictEqual(err, null)
         assert.strictEqual(res.remaining, 5)
         return this.get(id)
@@ -196,29 +194,37 @@ describe('thunk-ratelimiter', function () {
     var max = 10000
     var limiters = []
 
-    for (var i = 0; i < clientsCount; ++i) {
-      limiters.push(new Limiter({
-        duration: 10000,
-        max: max,
-        db: redis.createClient()
-      }))
-    }
+    before(function () {
+      for (var i = 0; i < clientsCount; ++i) {
+        limiters.push(new Limiter({
+          duration: 10000,
+          max: max,
+          db: redis.createClient()
+        }))
+      }
+    })
 
     it('should prevent race condition and properly set the expected value', function (done) {
       // Warm up and prepare the data.
       var i
-      var count = max
       var tasks = []
-      for (i = max + 100; i >= 0; i--) tasks.push(getLimit())
+      var result = []
+      for (i = max; i >= 0; i--) {
+        result.push(i)
+        tasks.push(getLimit())
+      }
 
       function getLimit () {
         return limiters[~~(Math.random() * 10)].get(id)(function (err, res) {
           assert.strictEqual(err, null)
-          assert.strictEqual(res.remaining, Math.max(count--, 0))
+          return +res.remaining
         })
       }
 
-      thunk.all(tasks)(done)
+      thunk.all(tasks)(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.deepEqual(result, res.sort(function (a, b) { return b - a }))
+      })(done)
     })
   })
 

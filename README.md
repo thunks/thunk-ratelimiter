@@ -1,6 +1,6 @@
 thunk-ratelimiter
 ==========
-Abstract rate limiter backed by thunk-redis.
+The fastest abstract rate limiter.
 
 [![NPM version][npm-image]][npm-url]
 [![Build Status][travis-image]][travis-url]
@@ -24,25 +24,24 @@ npm install thunk-ratelimiter
  Example Connect middleware implementation limiting against a `user._id`:
 
 ```js
-var limiter = new Limiter({db: db})
+var limiter = new Limiter()
 
-
+limiter.connect(redisClient) // connect to a thunk-redis instance
 limiter.get(req.user._id)(function(err, limit){
   if (err) return next(err)
 
-  res.set('X-RateLimit-Limit', limit.total)
-  res.set('X-RateLimit-Remaining', limit.remaining - 1)
-  res.set('X-RateLimit-Reset', limit.reset)
+  response.set('X-RateLimit-Limit', limit.total)
+  response.set('X-RateLimit-Remaining', limit.remaining - 1)
+  response.set('X-RateLimit-Reset', Math.ceil(limit.reset / 1000))
 
   // all good
   debug('remaining %s/%s %s', limit.remaining - 1, limit.total, id)
   if (limit.remaining) return next()
 
   // not good
-  var after = Math.floor((limit.reset - Date.now()) / 1000)
-  res.set('Retry-After', after)
-
-  res.send(429, 'Rate limit exceeded, retry in ' + after + ' seconds')
+  var after = Math.ceil((limit.reset - Date.now()) / 1000)
+  response.set('Retry-After', after)
+  response.end(429, 'Rate limit exceeded, retry in ' + after + ' seconds')
 })
 ```
 
@@ -53,15 +52,23 @@ limiter.get(req.user._id)(function(err, limit){
 Return a limiter instance.
 
 ```js
-var limiter = new Limiter({db: db})
+var limiter = new Limiter()
 ```
 
-- `options.db`: *required*, Type: `Object`, redis connection instance.
 - `options.max`: *Optional*, Type: `Number`, max requests within `duration`, default to `2500`.
 - `options.duration`: *Optional*, Type: `Number`, of limit in milliseconds, default to `3600000`.
 - `options.prefix`: *Optional*, Type: `String`, redis key namespace, default to `LIMIT`.
 
-### limiter.get(id[, max, duration])
+### Limiter.prototype.connect([host, options]) => `this`
+### Limiter.prototype.connect(redisClient) => `this`
+
+Connect to redis. Arguments are the same as [thunk-redis](https://github.com/thunks/thunk-redis)'s `createClient`, or give a thunk-redis instance.
+
+```js
+limiter.connect(6379)
+```
+
+### Limiter.prototype.get(id[, max, duration])
 
 Return a thunk function that guarantee a limiter result.
 

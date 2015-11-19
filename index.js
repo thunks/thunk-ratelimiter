@@ -9,6 +9,7 @@
  */
 var fs = require('fs')
 var thunk = require('thunks')()
+var redis = require('thunk-redis')
 var limitScript = fs.readFileSync(__dirname + '/ratelimite.lua', {encoding: 'utf8'})
 
 module.exports = Limiter
@@ -26,23 +27,22 @@ module.exports = Limiter
  */
 
 function Limiter (options) {
-  if (!options || !options.db) throw new Error('redis client (options.db) required')
+  options = options || {}
 
-  this.db = options.db
+  this.redis = options.db // deprecate, will be remove!
   this.prefix = options.prefix || 'LIMIT'
   this.max = options.max >= 1 ? Math.floor(options.max) : 2500
   this.duration = options.duration >= 1000 ? Math.floor(options.duration) : 3600000
 }
 
-Limiter.prototype.limitScript = null
-
-Limiter.prototype.loadScript = function () {
-  var ctx = this
-  return this.db.script('load', limitScript)(function (err, luaSHA) {
-    if (err) throw err
-    ctx.limitScript = luaSHA
-    return luaSHA
-  })
+Limiter.prototype.connect = function (redisClient) {
+  if (this.redis) return this
+  if (redisClient && redisClient.info && typeof redisClient.evalauto === 'function') {
+    this.redis = redisClient
+  } else {
+    this.redis = redis.createClient.apply(null, arguments)
+  }
+  return this
 }
 
 /**
@@ -58,15 +58,11 @@ Limiter.prototype.get = function (id, max, duration) {
   id = this.prefix + ':' + id
   max = max > 0 ? max : this.max
   duration = duration > 0 ? duration : this.duration
-  return thunk.call(this, this.limitScript || this.loadScript())(function (err, luaSHA) {
-    if (err) throw err
-    var db = this.db
-    return function (done) {
-      db.evalsha(luaSHA, 1, id, max, duration, Date.now())(function (err, res) {
-        if (err) return done(err)
-        done(null, new Limit(res[0], res[1], res[2]))
-      })
-    }
+  return thunk.call(this, function (done) {
+    this.redis.evalauto(limitScript, 1, id, max, duration, Date.now())(function (err, res) {
+      if (err) throw err
+      return new Limit(res[0], res[1], res[2])
+    })(done)
   })
 }
 
