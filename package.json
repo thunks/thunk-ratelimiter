@@ -1,6 +1,6 @@
 {
   "name": "thunk-ratelimiter",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "The fastest abstract rate limiter.",
   "main": "index.js",
   "authors": [
@@ -22,8 +22,8 @@
     "node": ">= 0.10.x"
   },
   "dependencies": {
-    "thunks": "^4.0.1",
-    "thunk-redis": "^1.2.2"
+    "thunks": "^4.1.0",
+    "thunk-redis": "^1.2.4"
   },
   "devDependencies": {
     "mocha": "^2.3.4",
