@@ -7,7 +7,8 @@
     "Yan Qing <admin@zensh.com>"
   ],
   "scripts": {
-    "test": "standard && mocha -t 10000 test/index.js"
+    "test": "standard && mocha -t 10000 -r thunk-mocha test/index.js",
+    "test-cluster": "standard && mocha -t 100000 -r thunk-mocha test/cluster.js"
   },
   "repository": {
     "type": "git",
@@ -27,7 +28,8 @@
   },
   "devDependencies": {
     "mocha": "^2.3.4",
-    "standard": "^5.4.1"
+    "standard": "^5.4.1",
+    "thunk-mocha": "^1.0.1"
   },
   "license": "MIT",
   "bugs": {

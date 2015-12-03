@@ -68,12 +68,19 @@ Connect to redis. Arguments are the same as [thunk-redis](https://github.com/thu
 limiter.connect(6379)
 ```
 
-### Limiter.prototype.get(id[, max, duration])
+### Limiter.prototype.get(id, max, duration, max, duration, ...)
+### Limiter.prototype.get([id, max, duration, max, duration, ...])
 
-Return a thunk function that guarantee a limiter result.
+Return a thunk function that guarantee a limiter result. it support more `max` and `duration` pairs ad limit policy. The first pairs will be used as default. If some trigger limit, then the limiter will apply the next pair policy.
 
 ```js
 var limiter.get('_userIdxxx')(function (err, limit) {
+  console.log(err, limit)
+})
+```
+
+```js
+var limiter.get('_userIdxxx:POST /files', 100, 60000, 50, 60000)(function (err, limit) {
   console.log(err, limit)
 })
 ```

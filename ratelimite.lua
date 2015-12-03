@@ -7,20 +7,21 @@
 --   field:dn(duration)
 --   field:rt(reset)
 
-local policyCount = (#ARGV - 1) / 2
-local ssKey = '{' .. KEYS[1] .. '}:SS'
-local limit = redis.call('hmget', KEYS[1], 'ct', 'lt', 'dn', 'rt')
 local res = {}
+local policyCount = (#ARGV - 1) / 2
+local statusKey = '{' .. KEYS[1] .. '}:S'
+local limit = redis.call('hmget', KEYS[1], 'ct', 'lt', 'dn', 'rt')
 
 if limit[1] then
+
   res[1] = tonumber(limit[1]) - 1
   res[2] = tonumber(limit[2])
   res[3] = tonumber(limit[3]) or ARGV[3]
   res[4] = tonumber(limit[4])
 
   if policyCount > 1 and res[1] == 0 then
-    redis.call('incr', ssKey)
-    redis.call('pexpire', ssKey, res[3] * 2)
+    redis.call('incr', statusKey)
+    redis.call('pexpire', statusKey, res[3] * 2)
   end
 
   if res[1] >= 0 then
@@ -33,7 +34,7 @@ else
 
   local index = 1
   if policyCount > 1 then
-    index = tonumber(redis.call('get', ssKey)) or 1
+    index = tonumber(redis.call('get', statusKey)) or 1
     if index > policyCount then
       index = policyCount
     end
@@ -48,8 +49,8 @@ else
   redis.call('pexpire', KEYS[1], res[3])
 
   if policyCount > 1 then
-    redis.call('set', ssKey, index)
-    redis.call('pexpire', ssKey, res[3] * 2)
+    redis.call('set', statusKey, index)
+    redis.call('pexpire', statusKey, res[3] * 2)
   end
 
 end

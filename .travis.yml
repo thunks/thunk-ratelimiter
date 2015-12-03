@@ -2,9 +2,8 @@ language: node_js
 node_js:
   - "0.10"
   - "0.12"
-  - "iojs"
   - "4.2"
-  - "5.0"
+  - "5.1"
 sudo: false
 services:
   - redis-server

@@ -31,7 +31,6 @@ module.exports = Limiter
 function Limiter (options) {
   options = options || {}
 
-  this.redis = options.db // deprecate, will be remove!
   this.prefix = options.prefix || 'LIMIT'
   this.max = options.max >= 1 ? Math.floor(options.max) : 2500
   this.duration = options.duration >= 1000 ? Math.floor(options.duration) : 3600000
@@ -50,25 +49,31 @@ Limiter.prototype.connect = function (redisClient) {
 /**
  * get limit object with `id`
  *
+ * call style: (id, max, duration, max, duration, ...)
  * @param {String} `id` {String} identifier being limited
  * @param {Number} `max` {Number} max requests within `duration`, default to `this.max`
  * @param {Number} `duration` {Number} of limit in milliseconds, default to `this.duration`
+ *
+ * or call style: ([id, max, duration, max, duration, ...])
  * @api public
  */
 
-Limiter.prototype.get = function (id, max, duration) {
-  id = this.prefix + ':' + id
-  if (max == null) max = this.max
-  if (duration == null) duration = this.duration
+Limiter.prototype.get = function (id) {
+  var args = slice.call(Array.isArray(id) ? id : arguments)
 
-  var rest = slice.call(arguments, 3)
+  id = this.prefix + ':' + args[0]
+  if (args[1] == null) args[1] = this.max
+  if (args[2] == null) args[2] = this.duration
 
   return thunk.call(this, function (done) {
-    var args = [limitScript, 1, id, Date.now(), max, duration]
-    // check more pairs of `max, duration`
-    if (rest.length) args.push.apply(args, rest)
+    // transfor args to [limitScript, 1, id, timestamp, max, duration, max, duration, ...]
+    args[0] = Date.now()
+    args.unshift(limitScript, 1, id)
+    // check pairs of `max, duration`
     for (var i = 4, len = args.length; i < len; i += 2) {
-      if (!(args[i] > 0 && args[i + 1] > 0)) throw new Error(args[i] + ' or ' + args[i + 1] + ' invalid')
+      if (!(args[i] > 0 && args[i + 1] > 0)) {
+        throw new Error(args[i] + ' or ' + args[i + 1] + ' is invalid')
+      }
     }
 
     this.redis.evalauto(args)(function (err, res) {
