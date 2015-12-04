@@ -56,7 +56,7 @@ var limiter = new Limiter()
 ```
 
 - `options.max`: *Optional*, Type: `Number`, max requests within `duration`, default to `2500`.
-- `options.duration`: *Optional*, Type: `Number`, of limit in milliseconds, default to `3600000`.
+- `options.duration`: *Optional*, Type: `Number`, of limit in milliseconds, **should greater than `100` ms**, default to `3600000`.
 - `options.prefix`: *Optional*, Type: `String`, redis key namespace, default to `LIMIT`.
 
 ### Limiter.prototype.connect([host, options]) => `this`
@@ -91,14 +91,14 @@ var limiter.get('_userIdxxx:POST /files', 100, 60000, 50, 60000)(function (err, 
 
 **Result Object:**
 
-- `limit.total` - `max` value
 - `limit.remaining` - number of calls left in current `duration` without decreasing current `get`
+- `limit.total` - `max` value
+- `limit.duration` - current `duration` in milliseconds
 - `limit.reset` - timestamp in milliseconds
 
 ## Who's using
 
 ### [Teambition](https://www.teambition.com/)
-1. Teambition community https://bbs.teambition.com/
 
 [npm-url]: https://npmjs.org/package/thunk-ratelimiter
 [npm-image]: http://img.shields.io/npm/v/thunk-ratelimiter.svg

@@ -33,7 +33,7 @@ function Limiter (options) {
 
   this.prefix = options.prefix || 'LIMIT'
   this.max = options.max >= 1 ? Math.floor(options.max) : 2500
-  this.duration = options.duration >= 1000 ? Math.floor(options.duration) : 3600000
+  this.duration = options.duration >= 100 ? Math.floor(options.duration) : 3600000
 }
 
 Limiter.prototype.connect = function (redisClient) {
