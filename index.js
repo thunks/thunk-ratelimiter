@@ -12,7 +12,7 @@ var thunk = require('thunks')()
 var redis = require('thunk-redis')
 var limitScript = fs.readFileSync(__dirname + '/ratelimite.lua', {encoding: 'utf8'})
 
-var slice = Array.prototype.slice
+var slice = redis.slice
 
 module.exports = Limiter
 
@@ -59,7 +59,7 @@ Limiter.prototype.connect = function (redisClient) {
  */
 
 Limiter.prototype.get = function (id) {
-  var args = slice.call(Array.isArray(id) ? id : arguments)
+  var args = slice(Array.isArray(id) ? id : arguments)
 
   id = this.prefix + ':' + args[0]
   if (args[1] == null) args[1] = this.max
