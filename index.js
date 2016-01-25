@@ -27,7 +27,6 @@ module.exports = Limiter
  * @param {Object} options
  * @api public
  */
-
 function Limiter (options) {
   options = options || {}
 
@@ -57,7 +56,6 @@ Limiter.prototype.connect = function (redisClient) {
  * or call style: ([id, max, duration, max, duration, ...])
  * @api public
  */
-
 Limiter.prototype.get = function (id) {
   var args = slice(Array.isArray(id) ? id : arguments)
 
@@ -85,7 +83,7 @@ Limiter.prototype.get = function (id) {
 
 function Limit (remaining, total, duration, reset) {
   this.remaining = remaining
-  this.total = total
   this.duration = duration
   this.reset = reset
+  this.total = total
 }
