@@ -96,6 +96,14 @@ var limiter.get('_userIdxxx:POST /files', 100, 60000, 50, 60000)(function (err, 
 - `limit.duration` - current `duration` in milliseconds
 - `limit.reset` - timestamp in milliseconds
 
+### Limiter.prototype.remove(id)
+
+```js
+var limiter.remove('_userIdxxx')(function (err, res) {
+  console.log(err, res)
+})
+```
+
 ## Who's using
 
 ### [Teambition](https://www.teambition.com/)

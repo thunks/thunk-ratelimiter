@@ -8,9 +8,10 @@
  *
  */
 var fs = require('fs')
+var path = require('path')
 var thunk = require('thunks')()
 var redis = require('thunk-redis')
-var limitScript = fs.readFileSync(__dirname + '/ratelimite.lua', {encoding: 'utf8'})
+var limitScript = fs.readFileSync(path.join(__dirname, 'ratelimite.lua'), {encoding: 'utf8'})
 
 var slice = redis.slice
 
@@ -79,6 +80,15 @@ Limiter.prototype.get = function (id) {
       return new Limit(res[0], res[1], res[2], res[3])
     })(done)
   })
+}
+
+/**
+ * remove limit object by `id`
+ *
+ * @api public
+ */
+Limiter.prototype.remove = function (id) {
+  return thunk.call(this, this.redis.del(this.prefix + ':' + id))
 }
 
 function Limit (remaining, total, duration, reset) {

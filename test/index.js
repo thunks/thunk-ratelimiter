@@ -33,6 +33,41 @@ describe('thunk-ratelimiter', function () {
     })(done)
   })
 
+  describe('limiter', function () {
+    it('get and remove', function (done) {
+      var id = 'something'
+      var limiter = new Limiter({
+        max: 5
+      })
+      limiter.connect(db)
+
+      limiter.redis.exists(limiter.prefix + ':' + id)(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res, 0)
+        return limiter.get(id)
+      })(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res.total, 5)
+        return limiter.redis.exists(limiter.prefix + ':' + id)
+      })(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res, 1)
+        return limiter.remove(id)
+      })(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res, 1)
+        return limiter.redis.exists(limiter.prefix + ':' + id)
+      })(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res, 0)
+        return limiter.get(id)
+      })(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res.total, 5)
+      })(done)
+    })
+  })
+
   describe('limit.total', function () {
     it('should represent the total limit per reset period', function (done) {
       var id = 'something'
