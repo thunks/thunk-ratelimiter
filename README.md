@@ -7,7 +7,10 @@ The fastest abstract rate limiter.
 
 ## [thunks](https://github.com/thunks/thunks)
 
-## it is implemented with redis script and very fast!
+## Implementations:
+
+- [smart-limiter](https://github.com/teambition/smart-limiter) Smart rate limiter middleware for express.
+- [toa-ratelimit](https://github.com/toajs/toa-ratelimit) Smart rate limiter module for toa.
 
 ## Requirements
 
@@ -103,10 +106,6 @@ var limiter.remove('_userIdxxx')(function (err, res) {
   console.log(err, res)
 })
 ```
-
-## Who's using
-
-### [Teambition](https://www.teambition.com/)
 
 [npm-url]: https://npmjs.org/package/thunk-ratelimiter
 [npm-image]: http://img.shields.io/npm/v/thunk-ratelimiter.svg
