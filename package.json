@@ -1,14 +1,14 @@
 {
   "name": "thunk-ratelimiter",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "The fastest abstract rate limiter.",
   "main": "index.js",
   "authors": [
     "Yan Qing <admin@zensh.com>"
   ],
   "scripts": {
-    "test": "standard && mocha -t 10000 -r thunk-mocha test/index.js",
-    "test-cluster": "standard && mocha -t 100000 -r thunk-mocha test/cluster.js"
+    "test": "standard && tman test/index",
+    "test-cluster": "tman test/cluster"
   },
   "repository": {
     "type": "git",
@@ -23,13 +23,12 @@
     "node": ">= 0.10.x"
   },
   "dependencies": {
-    "thunks": "^4.1.4",
-    "thunk-redis": "^1.5.3"
+    "thunks": "^4.1.5",
+    "thunk-redis": "^1.5.5"
   },
   "devDependencies": {
-    "mocha": "^2.4.5",
     "standard": "^6.0.8",
-    "thunk-mocha": "^1.0.3"
+    "tman": "^0.5.2"
   },
   "license": "MIT",
   "bugs": {

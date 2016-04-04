@@ -3,8 +3,6 @@
 //
 // **License:** MIT
 
-/* global describe, it, before, after, beforeEach */
-
 /**
  * modified from https://github.com/tj/node-ratelimiter
  *
@@ -13,19 +11,22 @@
  */
 
 var assert = require('assert')
+var tman = require('tman')
 var thunk = require('thunks')()
 var redis = require('thunk-redis')
 var Limiter = require('..')
 
 var db = redis.createClient()
 
-describe('thunk-ratelimiter', function () {
-  after(function (done) {
+tman.suite('thunk-ratelimiter', function () {
+  this.timeout(10000)
+
+  tman.after(function (done) {
     db.clientEnd()
     done()
   })
 
-  beforeEach(function (done) {
+  tman.beforeEach(function (done) {
     db.keys('LIMIT:*')(function (err, keys) {
       if (err) throw err
       if (!keys.length) return
@@ -33,8 +34,8 @@ describe('thunk-ratelimiter', function () {
     })(done)
   })
 
-  describe('limiter', function () {
-    it('get and remove', function (done) {
+  tman.suite('limiter', function () {
+    tman.it('get and remove', function (done) {
       var id = 'something'
       var limiter = new Limiter({
         max: 5
@@ -68,8 +69,8 @@ describe('thunk-ratelimiter', function () {
     })
   })
 
-  describe('limit.total', function () {
-    it('should represent the total limit per reset period', function (done) {
+  tman.suite('limit.total', function () {
+    tman.it('should represent the total limit per reset period', function (done) {
       var id = 'something'
       var limiter = new Limiter({
         max: 5
@@ -81,8 +82,8 @@ describe('thunk-ratelimiter', function () {
     })
   })
 
-  describe('limit.remaining', function () {
-    it('should represent the number of requests remaining in the reset period', function (done) {
+  tman.suite('limit.remaining', function () {
+    tman.it('should represent the number of requests remaining in the reset period', function (done) {
       var id = 'something'
       var limiter = new Limiter({
         max: 5,
@@ -104,8 +105,8 @@ describe('thunk-ratelimiter', function () {
     })
   })
 
-  describe('limit.duration', function () {
-    it('should represent the duration per reset period', function (done) {
+  tman.suite('limit.duration', function () {
+    tman.it('should represent the duration per reset period', function (done) {
       var id = 'something'
       var limiter = new Limiter({
         max: 5,
@@ -118,8 +119,8 @@ describe('thunk-ratelimiter', function () {
     })
   })
 
-  describe('limit.reset', function () {
-    it('should represent the next reset time', function (done) {
+  tman.suite('limit.reset', function () {
+    tman.it('should represent the next reset time', function (done) {
       var id = 'something'
       var limiter = new Limiter({
         max: 5,
@@ -133,8 +134,8 @@ describe('thunk-ratelimiter', function () {
     })
   })
 
-  describe('when arguments is invalid', function () {
-    it('invalid "max" should response error', function (done) {
+  tman.suite('when arguments is invalid', function () {
+    tman.it('invalid "max" should response error', function (done) {
       var id = 'something'
       var limiter = new Limiter({
         max: 5,
@@ -145,7 +146,7 @@ describe('thunk-ratelimiter', function () {
       })(done)
     })
 
-    it('invalid "duration" should response error', function (done) {
+    tman.it('invalid "duration" should response error', function (done) {
       var id = 'something'
       var limiter = new Limiter({
         max: 5,
@@ -157,8 +158,8 @@ describe('thunk-ratelimiter', function () {
     })
   })
 
-  describe('when the limit is exceeded', function () {
-    it('should retain .remaining at 0', function (done) {
+  tman.suite('when the limit is exceeded', function () {
+    tman.it('should retain .remaining at 0', function (done) {
       var id = 'something'
       var limiter = new Limiter({
         max: 2
@@ -183,8 +184,8 @@ describe('thunk-ratelimiter', function () {
     })
   })
 
-  describe('when the duration is exceeded', function () {
-    it('should reset', function (done) {
+  tman.suite('when the duration is exceeded', function () {
+    tman.it('should reset', function (done) {
       var id = 'something'
       var limiter = new Limiter({
         duration: 2000,
@@ -208,8 +209,8 @@ describe('thunk-ratelimiter', function () {
     })
   })
 
-  describe('when the duration is exceeded', function () {
-    it('should reset', function (done) {
+  tman.suite('when the duration is exceeded', function () {
+    tman.it('should reset', function (done) {
       var id = 'something'
       var limiter = new Limiter({
         duration: 2000,
@@ -233,8 +234,8 @@ describe('thunk-ratelimiter', function () {
     })
   })
 
-  describe('when multiple successive calls are made', function () {
-    it('the next calls should not create again the limiter in Redis', function (done) {
+  tman.suite('when multiple successive calls are made', function () {
+    tman.it('the next calls should not create again the limiter in Redis', function (done) {
       var id = 'something'
       var limiter = new Limiter({
         duration: 10000,
@@ -257,8 +258,8 @@ describe('thunk-ratelimiter', function () {
     })
   })
 
-  describe('when trying to decrease before setting value', function () {
-    it('should create with ttl when trying to decrease', function (done) {
+  tman.suite('when trying to decrease before setting value', function () {
+    tman.it('should create with ttl when trying to decrease', function (done) {
       var id = 'something'
       var limiter = new Limiter({
         duration: 10000,
@@ -282,8 +283,8 @@ describe('thunk-ratelimiter', function () {
     })
   })
 
-  describe('when give multiple limit policy', function () {
-    it('should apply high level limit policy', function (done) {
+  tman.suite('when give multiple limit policy', function () {
+    tman.it('should apply high level limit policy', function (done) {
       var policy = ['something1', 3, 2000, 2, 2000, 1, 1000]
       var limiter = new Limiter()
       limiter.connect(db)
@@ -340,7 +341,7 @@ describe('thunk-ratelimiter', function () {
       })(done)
     })
 
-    it('should restore low level limit policy after double duration', function (done) {
+    tman.it('should restore low level limit policy after double duration', function (done) {
       var policy = ['something2', 3, 2000, 2, 2000, 1, 1000]
       var limiter = new Limiter()
       limiter.connect(db)
@@ -380,13 +381,13 @@ describe('thunk-ratelimiter', function () {
     })
   })
 
-  describe('when multiple concurrent clients modify the limit', function () {
+  tman.suite('when multiple concurrent clients modify the limit', function () {
     var id = 'something'
     var clientsCount = 10
     var max = 10000
     var limiters = []
 
-    before(function () {
+    tman.before(function () {
       for (var i = 0; i < clientsCount; ++i) {
         var limiter = new Limiter({
           duration: 10000,
@@ -396,7 +397,7 @@ describe('thunk-ratelimiter', function () {
       }
     })
 
-    it('should prevent race condition and properly set the expected value', function (done) {
+    tman.it('should prevent race condition and properly set the expected value', function (done) {
       // Warm up and prepare the data.
       var i
       var tasks = []
@@ -420,8 +421,8 @@ describe('thunk-ratelimiter', function () {
     })
   })
 
-  describe('limit with vary parameters', function () {
-    it('should work with vary parameters for different id', function (done) {
+  tman.suite('limit with vary parameters', function () {
+    tman.it('should work with vary parameters for different id', function (done) {
       var limiter = new Limiter({
         duration: 10000,
         max: 5
@@ -440,7 +441,7 @@ describe('thunk-ratelimiter', function () {
       })(done)
     })
 
-    it('should keep limit with vary parameters for the same id', function (done) {
+    tman.it('should keep limit with vary parameters for the same id', function (done) {
       var id = 'something'
       var limiter = new Limiter({
         duration: 1000,
@@ -460,8 +461,8 @@ describe('thunk-ratelimiter', function () {
       })(done)
     })
 
-    it('should refresh limit with vary parameters for the same id when the duration is exceeded', function (done) {
-      var id = 'something'
+    tman.it('should refresh limit with vary parameters for the same id when duration exceeded', function (done) {
+      var id = 'something4'
       var limiter = new Limiter({
         duration: 1000,
         max: 5

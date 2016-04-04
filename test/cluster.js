@@ -3,17 +3,18 @@
 //
 // **License:** MIT
 
-/* global describe, it */
-
 var assert = require('assert')
+var tman = require('tman')
 var thunk = require('thunks')()
 var redis = require('thunk-redis')
 var Limiter = require('..')
 
 var db = redis.createClient(7000)
 
-describe('thunk-ratelimiter', function () {
-  it('should work in redis cluster', function *() {
+tman.describe('thunk-ratelimiter', function () {
+  this.timeout(100000)
+
+  tman.it('should work in redis cluster', function *() {
     var limiter = new Limiter()
     limiter.connect(db)
     var policy = [10, 5000, 5, 4000, 5, 6000]
