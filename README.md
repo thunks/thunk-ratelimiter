@@ -4,6 +4,7 @@ The fastest abstract rate limiter.
 
 [![NPM version][npm-image]][npm-url]
 [![Build Status][travis-image]][travis-url]
+[![Downloads][downloads-image]][downloads-url]
 
 ## [thunks](https://github.com/thunks/thunks)
 
@@ -112,3 +113,6 @@ var limiter.remove('_userIdxxx')(function (err, res) {
 
 [travis-url]: https://travis-ci.org/thunks/thunk-ratelimiter
 [travis-image]: http://img.shields.io/travis/thunks/thunk-ratelimiter.svg
+
+[downloads-url]: https://npmjs.org/package/thunk-ratelimiter
+[downloads-image]: http://img.shields.io/npm/dm/thunk-ratelimiter.svg?style=flat-square
