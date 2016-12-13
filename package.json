@@ -1,6 +1,6 @@
 {
   "name": "thunk-ratelimiter",
-  "version": "2.1.6",
+  "version": "2.2.0",
   "description": "The fastest abstract rate limiter.",
   "main": "index.js",
   "authors": [
@@ -24,11 +24,11 @@
   },
   "dependencies": {
     "thunks": "^4.7.5",
-    "thunk-redis": "^1.7.2"
+    "thunk-redis": "^1.7.3"
   },
   "devDependencies": {
-    "standard": "^8.3.0",
-    "tman": "^1.6.0"
+    "standard": "^8.6.0",
+    "tman": "^1.6.4"
   },
   "license": "MIT",
   "bugs": {

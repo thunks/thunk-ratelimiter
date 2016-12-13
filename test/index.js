@@ -91,16 +91,16 @@ tman.suite('thunk-ratelimiter', function () {
       })
       limiter.connect(db).get(id)(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 5)
-        return this.get(id)
-      })(function (err, res) {
-        assert.strictEqual(err, null)
         assert.strictEqual(res.remaining, 4)
         return this.get(id)
       })(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.total, 5)
         assert.strictEqual(res.remaining, 3)
+        return this.get(id)
+      })(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res.total, 5)
+        assert.strictEqual(res.remaining, 2)
       })(done)
     })
   })
@@ -166,20 +166,45 @@ tman.suite('thunk-ratelimiter', function () {
       })
       limiter.connect(db).get(id)(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 2)
-        return this.get(id)
-      })(function (err, res) {
-        assert.strictEqual(err, null)
         assert.strictEqual(res.remaining, 1)
         return this.get(id)
       })(function (err, res) {
         assert.strictEqual(err, null)
         assert.strictEqual(res.remaining, 0)
+        return this.get(id)
+      })(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res.remaining, -1)
         return this.get(id)
       })(function (err, res) {
         assert.strictEqual(err, null)
         assert.strictEqual(res.total, 2)
+        assert.strictEqual(res.remaining, -1)
+      })(done)
+    })
+  })
+
+  tman.suite('when the duration is exceeded', function () {
+    tman.it('should reset', function (done) {
+      var id = 'something'
+      var limiter = new Limiter({
+        duration: 2000,
+        max: 2
+      })
+      limiter.connect(db).get(id)(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res.remaining, 1)
+        return this.get(id)
+      })(function (err, res) {
+        assert.strictEqual(err, null)
         assert.strictEqual(res.remaining, 0)
+        return thunk.seq(thunk.delay(2100), this.get(id))
+      })(function (err, res) {
+        assert.strictEqual(err, null)
+        var left = res[1].reset - Date.now()
+        assert(left > 1000)
+        assert(left <= 2000)
+        assert.strictEqual(res[1].remaining, 1)
       })(done)
     })
   })
@@ -193,43 +218,18 @@ tman.suite('thunk-ratelimiter', function () {
       })
       limiter.connect(db).get(id)(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 2)
+        assert.strictEqual(res.remaining, 1)
         return this.get(id)
       })(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 1)
+        assert.strictEqual(res.remaining, 0)
         return thunk.seq(thunk.delay(2100), this.get(id))
       })(function (err, res) {
         assert.strictEqual(err, null)
         var left = res[1].reset - Date.now()
         assert(left > 1000)
         assert(left <= 2000)
-        assert.strictEqual(res[1].remaining, 2)
-      })(done)
-    })
-  })
-
-  tman.suite('when the duration is exceeded', function () {
-    tman.it('should reset', function (done) {
-      var id = 'something'
-      var limiter = new Limiter({
-        duration: 2000,
-        max: 2
-      })
-      limiter.connect(db).get(id)(function (err, res) {
-        assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 2)
-        return this.get(id)
-      })(function (err, res) {
-        assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 1)
-        return thunk.seq(thunk.delay(2100), this.get(id))
-      })(function (err, res) {
-        assert.strictEqual(err, null)
-        var left = res[1].reset - Date.now()
-        assert(left > 1000)
-        assert(left <= 2000)
-        assert.strictEqual(res[1].remaining, 2)
+        assert.strictEqual(res[1].remaining, 1)
       })(done)
     })
   })
@@ -243,17 +243,15 @@ tman.suite('thunk-ratelimiter', function () {
       })
       limiter.connect(db).get(id)(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 2)
-      })
-
-      limiter.get(id)(function (err, res) {
-        assert.strictEqual(err, null)
         assert.strictEqual(res.remaining, 1)
-      })
-
-      limiter.get(id)(function (err, res) {
+        return limiter.get(id)
+      })(function (err, res) {
         assert.strictEqual(err, null)
         assert.strictEqual(res.remaining, 0)
+        return limiter.get(id)
+      })(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res.remaining, -1)
       })(done)
     })
   })
@@ -270,15 +268,15 @@ tman.suite('thunk-ratelimiter', function () {
         return limiter.get(id)
       })(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 2)
-        return limiter.get(id)
-      })(function (err, res) {
-        assert.strictEqual(err, null)
         assert.strictEqual(res.remaining, 1)
         return limiter.get(id)
       })(function (err, res) {
         assert.strictEqual(err, null)
         assert.strictEqual(res.remaining, 0)
+        return limiter.get(id)
+      })(function (err, res) {
+        assert.strictEqual(err, null)
+        assert.strictEqual(res.remaining, -1)
       })(done)
     })
   })
@@ -290,7 +288,7 @@ tman.suite('thunk-ratelimiter', function () {
       limiter.connect(db)
       limiter.get(policy)(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 3)
+        assert.strictEqual(res.remaining, 2)
         return thunk.all([
           limiter.get(policy),
           limiter.get(policy),
@@ -298,9 +296,9 @@ tman.suite('thunk-ratelimiter', function () {
         ])
       })(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res[0].remaining, 2)
-        assert.strictEqual(res[1].remaining, 1)
-        assert.strictEqual(res[2].remaining, 0)
+        assert.strictEqual(res[0].remaining, 1)
+        assert.strictEqual(res[1].remaining, 0)
+        assert.strictEqual(res[2].remaining, -1)
         return thunk.seq([
           thunk.delay(2010),
           limiter.get(policy),
@@ -311,9 +309,9 @@ tman.suite('thunk-ratelimiter', function () {
         assert.strictEqual(err, null)
         assert.strictEqual(res[1].total, 2)
         assert.strictEqual(res[1].duration, 2000)
-        assert.strictEqual(res[1].remaining, 2)
-        assert.strictEqual(res[2].remaining, 1)
-        assert.strictEqual(res[3].remaining, 0)
+        assert.strictEqual(res[1].remaining, 1)
+        assert.strictEqual(res[2].remaining, 0)
+        assert.strictEqual(res[3].remaining, -1)
         return thunk.seq([
           thunk.delay(2010),
           limiter.get(policy),
@@ -324,9 +322,9 @@ tman.suite('thunk-ratelimiter', function () {
         assert.strictEqual(err, null)
         assert.strictEqual(res[1].total, 1)
         assert.strictEqual(res[1].duration, 1000)
-        assert.strictEqual(res[1].remaining, 1)
-        assert.strictEqual(res[2].remaining, 0)
-        assert.strictEqual(res[3].remaining, 0)
+        assert.strictEqual(res[1].remaining, 0)
+        assert.strictEqual(res[2].remaining, -1)
+        assert.strictEqual(res[3].remaining, -1)
         return thunk.seq([
           thunk.delay(1010),
           limiter.get(policy),
@@ -336,8 +334,8 @@ tman.suite('thunk-ratelimiter', function () {
         assert.strictEqual(err, null)
         assert.strictEqual(res[1].total, 1)
         assert.strictEqual(res[1].duration, 1000)
-        assert.strictEqual(res[1].remaining, 1)
-        assert.strictEqual(res[2].remaining, 0)
+        assert.strictEqual(res[1].remaining, 0)
+        assert.strictEqual(res[2].remaining, -1)
       })(done)
     })
 
@@ -347,7 +345,7 @@ tman.suite('thunk-ratelimiter', function () {
       limiter.connect(db)
       limiter.get(policy)(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 3)
+        assert.strictEqual(res.remaining, 2)
         return thunk.all([
           limiter.get(policy),
           limiter.get(policy),
@@ -355,9 +353,9 @@ tman.suite('thunk-ratelimiter', function () {
         ])
       })(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res[0].remaining, 2)
-        assert.strictEqual(res[1].remaining, 1)
-        assert.strictEqual(res[2].remaining, 0)
+        assert.strictEqual(res[0].remaining, 1)
+        assert.strictEqual(res[1].remaining, 0)
+        assert.strictEqual(res[2].remaining, -1)
         return thunk.seq([
           thunk.delay(2010),
           limiter.get(policy),
@@ -367,7 +365,7 @@ tman.suite('thunk-ratelimiter', function () {
         assert.strictEqual(err, null)
         assert.strictEqual(res[1].total, 2)
         assert.strictEqual(res[1].duration, 2000)
-        assert.strictEqual(res[1].remaining, 2)
+        assert.strictEqual(res[1].remaining, 1)
         return thunk.seq([
           thunk.delay(4010),
           limiter.get(policy)
@@ -376,7 +374,7 @@ tman.suite('thunk-ratelimiter', function () {
         assert.strictEqual(err, null)
         assert.strictEqual(res[1].total, 3)
         assert.strictEqual(res[1].duration, 2000)
-        assert.strictEqual(res[1].remaining, 3)
+        assert.strictEqual(res[1].remaining, 2)
       })(done)
     })
   })
@@ -403,7 +401,7 @@ tman.suite('thunk-ratelimiter', function () {
       var tasks = []
       var result = []
       for (i = max; i >= 0; i--) {
-        result.push(i)
+        result.push(i - 1)
         tasks.push(getLimit())
       }
 
@@ -429,15 +427,15 @@ tman.suite('thunk-ratelimiter', function () {
       })
       limiter.connect(db).get('something1')(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 5)
+        assert.strictEqual(res.remaining, 4)
         return limiter.get('something2', 10, 10000)
       })(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 10)
+        assert.strictEqual(res.remaining, 9)
         return limiter.get('something3', 20, 10000)
       })(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 20)
+        assert.strictEqual(res.remaining, 19)
       })(done)
     })
 
@@ -449,15 +447,15 @@ tman.suite('thunk-ratelimiter', function () {
       })
       limiter.connect(db).get(id)(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 5)
+        assert.strictEqual(res.remaining, 4)
         return limiter.get(id, 10, 10000)
       })(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 4)
+        assert.strictEqual(res.remaining, 3)
         return limiter.get(id, 20, 10000)
       })(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 3)
+        assert.strictEqual(res.remaining, 2)
       })(done)
     })
 
@@ -469,19 +467,19 @@ tman.suite('thunk-ratelimiter', function () {
       })
       limiter.connect(db).get(id)(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 5)
+        assert.strictEqual(res.remaining, 4)
         return limiter.get(id, 10, 10000)
       })(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 4)
+        assert.strictEqual(res.remaining, 3)
         return thunk.seq(thunk.delay(1100), limiter.get(id, 10, 10000))
       })(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res[1].remaining, 10)
+        assert.strictEqual(res[1].remaining, 9)
         return limiter.get(id, 10, 10000)
       })(function (err, res) {
         assert.strictEqual(err, null)
-        assert.strictEqual(res.remaining, 9)
+        assert.strictEqual(res.remaining, 8)
       })(done)
     })
   })

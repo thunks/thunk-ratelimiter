@@ -35,12 +35,12 @@ limiter.get(req.user._id)(function(err, limit){
   if (err) return next(err)
 
   response.set('X-RateLimit-Limit', limit.total)
-  response.set('X-RateLimit-Remaining', limit.remaining - 1)
+  response.set('X-RateLimit-Remaining', limit.remaining)
   response.set('X-RateLimit-Reset', Math.ceil(limit.reset / 1000))
 
   // all good
-  debug('remaining %s/%s %s', limit.remaining - 1, limit.total, id)
-  if (limit.remaining) return next()
+  debug('remaining %s/%s %s', limit.remaining, limit.total, id)
+  if (limit.remaining >= 0) return next()
 
   // not good
   var after = Math.ceil((limit.reset - Date.now()) / 1000)

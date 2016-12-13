@@ -19,15 +19,10 @@ if limit[1] then
   res[3] = tonumber(limit[3]) or ARGV[3]
   res[4] = tonumber(limit[4])
 
-  if policyCount > 1 and res[1] == 0 then
-    redis.call('incr', statusKey)
-    redis.call('pexpire', statusKey, res[3] * 2)
-  end
-
   if res[1] >= 0 then
     redis.call('hincrby', KEYS[1], 'ct', -1)
   else
-    res[1] = 0
+    res[1] = -1
   end
 
 else
@@ -40,17 +35,21 @@ else
     end
   end
 
-  res[1] = tonumber(ARGV[index * 2])
-  res[2] = res[1]
+  local total = tonumber(ARGV[index * 2])
+  res[1] = total - 1
+  res[2] = total
   res[3] = tonumber(ARGV[index * 2 + 1])
   res[4] = tonumber(ARGV[1]) + res[3]
 
-  redis.call('hmset', KEYS[1], 'ct', res[1], 'lt', res[1], 'dn', res[3], 'rt', res[4])
+  redis.call('hmset', KEYS[1], 'ct', res[1], 'lt', res[2], 'dn', res[3], 'rt', res[4])
   redis.call('pexpire', KEYS[1], res[3])
 
   if policyCount > 1 then
-    redis.call('set', statusKey, index)
+    redis.call('incr', statusKey)
     redis.call('pexpire', statusKey, res[3] * 2)
+    if index == 1 then
+      redis.call('incr', statusKey)
+    end
   end
 
 end
