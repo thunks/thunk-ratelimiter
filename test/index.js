@@ -349,12 +349,14 @@ tman.suite('thunk-ratelimiter', function () {
         return thunk.all([
           limiter.get(policy),
           limiter.get(policy),
+          limiter.get(policy),
           limiter.get(policy)
         ])
       })(function (err, res) {
         assert.strictEqual(err, null)
         assert.strictEqual(res[0].remaining, 1)
         assert.strictEqual(res[1].remaining, 0)
+        assert.strictEqual(res[2].remaining, -1)
         assert.strictEqual(res[2].remaining, -1)
         return thunk.seq([
           thunk.delay(2010),

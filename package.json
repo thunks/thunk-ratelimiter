@@ -1,6 +1,6 @@
 {
   "name": "thunk-ratelimiter",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "The fastest abstract rate limiter.",
   "main": "index.js",
   "authors": [
