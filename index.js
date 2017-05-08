@@ -7,13 +7,14 @@
  * inspire by https://github.com/tj/node-ratelimiter
  *
  */
-var fs = require('fs')
-var path = require('path')
-var thunk = require('thunks')()
-var redis = require('thunk-redis')
-var limitScript = fs.readFileSync(path.join(__dirname, 'ratelimite.lua'), {encoding: 'utf8'})
 
-var slice = redis.slice
+const fs = require('fs')
+const path = require('path')
+const thunk = require('thunks')()
+const redis = require('thunk-redis')
+const limitScript = fs.readFileSync(path.join(__dirname, 'ratelimite.lua'), {encoding: 'utf8'})
+
+const slice = Array.prototype.slice
 
 module.exports = Limiter
 
@@ -58,7 +59,7 @@ Limiter.prototype.connect = function (redisClient) {
  * @api public
  */
 Limiter.prototype.get = function (id) {
-  var args = slice(Array.isArray(id) ? id : arguments)
+  let args = slice.call(Array.isArray(id) ? id : arguments)
 
   id = this.prefix + ':' + args[0]
   if (args[1] == null) args[1] = this.max
@@ -69,7 +70,7 @@ Limiter.prototype.get = function (id) {
     args[0] = Date.now()
     args.unshift(limitScript, 1, id)
     // check pairs of `max, duration`
-    for (var i = 4, len = args.length; i < len; i += 2) {
+    for (let i = 4, len = args.length; i < len; i += 2) {
       if (!(args[i] > 0 && args[i + 1] > 0)) {
         throw new Error(args[i] + ' or ' + args[i + 1] + ' is invalid')
       }
