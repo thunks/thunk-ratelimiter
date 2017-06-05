@@ -1,5 +1,5 @@
-thunk-ratelimiter
-==========
+# thunk-ratelimiter
+
 The fastest abstract rate limiter.
 
 [![NPM version][npm-image]][npm-url]
@@ -19,7 +19,7 @@ The fastest abstract rate limiter.
 
 ## Installation
 
-```
+```sh
 npm install thunk-ratelimiter
 ```
 
@@ -28,10 +28,10 @@ npm install thunk-ratelimiter
  Example Connect middleware implementation limiting against a `user._id`:
 
 ```js
-var limiter = new Limiter()
+const limiter = new Limiter()
 
 limiter.connect(redisClient) // connect to a thunk-redis instance
-limiter.get(req.user._id)(function(err, limit){
+limiter.get(req.user._id)(function (err, limit) {
   if (err) return next(err)
 
   response.set('X-RateLimit-Limit', limit.total)
@@ -43,7 +43,7 @@ limiter.get(req.user._id)(function(err, limit){
   if (limit.remaining >= 0) return next()
 
   // not good
-  var after = Math.ceil((limit.reset - Date.now()) / 1000)
+  let after = Math.ceil((limit.reset - Date.now()) / 1000)
   response.set('Retry-After', after)
   response.end(429, 'Rate limit exceeded, retry in ' + after + ' seconds')
 })
@@ -56,7 +56,7 @@ limiter.get(req.user._id)(function(err, limit){
 Return a limiter instance.
 
 ```js
-var limiter = new Limiter()
+const limiter = new Limiter()
 ```
 
 - `options.max`: *Optional*, Type: `Number`, max requests within `duration`, default to `2500`.
@@ -78,13 +78,13 @@ limiter.connect(6379)
 Return a thunk function that guarantee a limiter result. it support more `max` and `duration` pairs ad limit policy. The first pairs will be used as default. If some trigger limit, then the limiter will apply the next pair policy.
 
 ```js
-var limiter.get('_userIdxxx')(function (err, limit) {
+limiter.get('_userIdxxx')(function (err, limit) {
   console.log(err, limit)
 })
 ```
 
 ```js
-var limiter.get('_userIdxxx:POST /files', 100, 60000, 50, 60000)(function (err, limit) {
+limiter.get('_userIdxxx:POST /files', 100, 60000, 50, 60000)(function (err, limit) {
   console.log(err, limit)
 })
 ```
@@ -103,7 +103,7 @@ var limiter.get('_userIdxxx:POST /files', 100, 60000, 50, 60000)(function (err, 
 ### Limiter.prototype.remove(id)
 
 ```js
-var limiter.remove('_userIdxxx')(function (err, res) {
+limiter.remove('_userIdxxx')(function (err, res) {
   console.log(err, res)
 })
 ```
