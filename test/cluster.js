@@ -41,7 +41,7 @@ tman.describe('thunk-ratelimiter', function () {
     function * child (args) {
       let result = []
       let res = yield limiter.get(args)
-      while (res.remaining) {
+      while (res.remaining >= 0) {
         result.push(res.duration)
         yield thunk.delay(Math.random() * 10)
         res = yield limiter.get(args)
