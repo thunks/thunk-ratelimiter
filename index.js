@@ -64,19 +64,17 @@ Limiter.prototype.get = function (id) {
   id = this.prefix + ':' + args[0]
   if (args[1] == null) args[1] = this.max
   if (args[2] == null) args[2] = this.duration
-
-  return thunk.call(this, function * () {
-    // transfor args to [limitScript, 1, id, timestamp, max, duration, max, duration, ...]
-    args[0] = Date.now()
-    args.unshift(limitScript, 1, id)
-    // check pairs of `max, duration`
-    for (let i = 4, len = args.length; i < len; i += 2) {
-      if (!(args[i] > 0 && args[i + 1] > 0)) {
-        throw new Error(args[i] + ' or ' + args[i + 1] + ' is invalid')
-      }
+  // transfor args to [limitScript, 1, id, timestamp, max, duration, max, duration, ...]
+  args[0] = Date.now()
+  args.unshift(limitScript, 1, id)
+  // check pairs of `max, duration`
+  for (let i = 4, len = args.length; i < len; i += 2) {
+    if (!(args[i] > 0 && args[i + 1] > 0)) {
+      return Promise.reject(new Error(args[i] + ' or ' + args[i + 1] + ' is invalid'))
     }
+  }
 
-    let res = yield this.redis.evalauto(args)
+  return thunk.promise(this.redis.evalauto(args)).then(function (res) {
     return new Limit(res[0], res[1], res[2], res[3])
   })
 }
@@ -87,7 +85,7 @@ Limiter.prototype.get = function (id) {
  * @api public
  */
 Limiter.prototype.remove = function (id) {
-  return thunk.call(this, this.redis.del(this.prefix + ':' + id))
+  return thunk.promise(this.redis.del(this.prefix + ':' + id))
 }
 
 function Limit (remaining, total, duration, reset) {

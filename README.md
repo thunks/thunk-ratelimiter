@@ -31,16 +31,14 @@ npm install thunk-ratelimiter
 const limiter = new Limiter()
 
 limiter.connect(redisClient) // connect to a thunk-redis instance
-limiter.get(req.user._id)(function (err, limit) {
-  if (err) return next(err)
-
+limiter.get(req.user._id).then(function (limit) {
   response.set('X-RateLimit-Limit', limit.total)
   response.set('X-RateLimit-Remaining', limit.remaining)
   response.set('X-RateLimit-Reset', Math.ceil(limit.reset / 1000))
 
   // all good
   debug('remaining %s/%s %s', limit.remaining, limit.total, id)
-  if (limit.remaining >= 0) return next()
+  if (limit.remaining >= 0) return
 
   // not good
   let after = Math.ceil((limit.reset - Date.now()) / 1000)
@@ -75,17 +73,17 @@ limiter.connect(6379)
 ### Limiter.prototype.get(id, max, duration, max, duration, ...)
 ### Limiter.prototype.get([id, max, duration, max, duration, ...])
 
-Return a thunk function that guarantee a limiter result. it support more `max` and `duration` pairs ad limit policy. The first pairs will be used as default. If some trigger limit, then the limiter will apply the next pair policy.
+Return a promise that guarantee a limiter result. it support more `max` and `duration` pairs ad limit policy. The first pairs will be used as default. If some trigger limit, then the limiter will apply the next pair policy.
 
 ```js
-limiter.get('_userIdxxx')(function (err, limit) {
-  console.log(err, limit)
+limiter.get('_userIdxxx').then(function (limit) {
+  console.log(limit)
 })
 ```
 
 ```js
-limiter.get('_userIdxxx:POST /files', 100, 60000, 50, 60000)(function (err, limit) {
-  console.log(err, limit)
+limiter.get('_userIdxxx:POST /files', 100, 60000, 50, 60000).then(function (limit) {
+  console.log(limit)
 })
 ```
 
@@ -103,7 +101,7 @@ limiter.get('_userIdxxx:POST /files', 100, 60000, 50, 60000)(function (err, limi
 ### Limiter.prototype.remove(id)
 
 ```js
-limiter.remove('_userIdxxx')(function (err, res) {
+limiter.remove('_userIdxxx').then(function (res) {
   console.log(err, res)
 })
 ```

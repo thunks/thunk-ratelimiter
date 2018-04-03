@@ -11,7 +11,7 @@ const Limiter = require('..')
 
 const db = redis.createClient(7000)
 
-tman.describe('thunk-ratelimiter', function () {
+tman.suite('thunk-ratelimiter-cluster', function () {
   this.timeout(100000)
 
   tman.it('should work in redis cluster', function * () {
