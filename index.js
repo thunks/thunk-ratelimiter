@@ -65,7 +65,7 @@ Limiter.prototype.get = function (id) {
   if (args[1] == null) args[1] = this.max
   if (args[2] == null) args[2] = this.duration
 
-  return thunk.call(this, function (done) {
+  return thunk.call(this, function * () {
     // transfor args to [limitScript, 1, id, timestamp, max, duration, max, duration, ...]
     args[0] = Date.now()
     args.unshift(limitScript, 1, id)
@@ -76,10 +76,8 @@ Limiter.prototype.get = function (id) {
       }
     }
 
-    this.redis.evalauto(args)(function (err, res) {
-      if (err) throw err
-      return new Limit(res[0], res[1], res[2], res[3])
-    })(done)
+    let res = yield this.redis.evalauto(args)
+    return new Limit(res[0], res[1], res[2], res[3])
   })
 }
 
