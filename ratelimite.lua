@@ -10,7 +10,8 @@
 local res = {}
 local policyCount = (#ARGV - 1) / 2
 local statusKey = '{' .. KEYS[1] .. '}:S'
-local limit = redis.call('hmget', KEYS[1], 'ct', 'lt', 'dn', 'rt')
+local countKey = '{' .. KEYS[1] .. '}:C'
+local limit = redis.call('hmget', countKey, 'ct', 'lt', 'dn', 'rt')
 
 if limit[1] then
 
@@ -29,7 +30,7 @@ if limit[1] then
   end
 
   if res[1] >= -1 then
-    redis.call('hincrby', KEYS[1], 'ct', -1)
+    redis.call('hincrby', countKey, 'ct', -1)
   else
     res[1] = -1
   end
@@ -50,8 +51,8 @@ else
   res[3] = tonumber(ARGV[index * 2 + 1])
   res[4] = tonumber(ARGV[1]) + res[3]
 
-  redis.call('hmset', KEYS[1], 'ct', res[1], 'lt', res[2], 'dn', res[3], 'rt', res[4])
-  redis.call('pexpire', KEYS[1], res[3])
+  redis.call('hmset', countKey, 'ct', res[1], 'lt', res[2], 'dn', res[3], 'rt', res[4])
+  redis.call('pexpire', countKey, res[3])
 
 end
 
