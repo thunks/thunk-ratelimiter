@@ -1,6 +1,6 @@
 {
   "name": "thunk-ratelimiter",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "The fastest abstract rate limiter.",
   "main": "index.js",
   "authors": [
@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "standard": "^11.0.1",
-    "tman": "^1.7.4"
+    "tman": "^1.8.0"
   },
   "license": "MIT",
   "bugs": {
