@@ -20,13 +20,14 @@
     "thunk"
   ],
   "engines": {
-    "node": ">= 4.5.0"
+    "node": ">= 8.0.0"
   },
   "dependencies": {
     "thunks": "^4.9.2",
     "thunk-redis": "^2.1.6"
   },
   "devDependencies": {
+    "ioredis": "^4.17.3",
     "standard": "^11.0.1",
     "tman": "^1.8.0"
   },
@@ -38,6 +39,6 @@
   "files": [
     "README.md",
     "index.js",
-    "ratelimite.lua"
+    "ratelimiter.lua"
   ]
 }

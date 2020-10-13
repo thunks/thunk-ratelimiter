@@ -12,7 +12,7 @@ const fs = require('fs')
 const path = require('path')
 const thunk = require('thunks')()
 const redis = require('thunk-redis')
-const limitScript = fs.readFileSync(path.join(__dirname, 'ratelimite.lua'), {encoding: 'utf8'})
+const limitScript = fs.readFileSync(path.join(__dirname, 'ratelimiter.lua'), { encoding: 'utf8' })
 
 const slice = Array.prototype.slice
 
@@ -39,8 +39,14 @@ function Limiter (options) {
 
 Limiter.prototype.connect = function (redisClient) {
   if (this.redis) return this
-  if (redisClient && redisClient.info && typeof redisClient.evalauto === 'function') {
+  if (redisClient) {
     this.redis = redisClient
+    if (this.redis.defineCommand) {
+      this.redis.defineCommand('ratelimiter', {
+        numberOfKeys: 2,
+        lua: limitScript
+      })
+    }
   } else {
     this.redis = redis.createClient.apply(null, arguments)
   }
@@ -58,7 +64,7 @@ Limiter.prototype.connect = function (redisClient) {
  * or call style: ([id, max, duration, max, duration, ...])
  * @api public
  */
-Limiter.prototype.get = function (id) {
+Limiter.prototype.get = async function (id) {
   let args = slice.call(Array.isArray(id) ? id : arguments)
 
   id = this.prefix + ':' + args[0]
@@ -72,8 +78,14 @@ Limiter.prototype.get = function (id) {
     }
   }
 
-  // transfor args to [limitScript, 2, id1, id2, timestamp, max, duration, max, duration, ...]
   args[0] = Date.now()
+  // if ioredis client or other ...?
+  if (this.redis.ratelimiter) {
+    args.unshift(`{${id}}:S`, `${id}`)
+    const result = await this.redis.ratelimiter(args)
+    return new Limit(...result)
+  }
+  // transfor args to [limitScript, 2, id1, id2, timestamp, max, duration, max, duration, ...]
   args.unshift(limitScript, 2, `{${id}}:S`, `${id}`)
   return thunk.promise(this.redis.evalauto(args)).then(function (res) {
     return new Limit(res[0], res[1], res[2], res[3])
