@@ -8,4 +8,4 @@ cache:
     - node_modules
 sudo: false
 services:
-  - redis-server
+  - redis

@@ -24,7 +24,7 @@ tman.suite('thunk-ratelimiter-cluster', function () {
     yield task
 
     function * runLimit (id) {
-      let args = [id].concat(policy)
+      const args = [id].concat(policy)
 
       let res = yield child(args)
       for (let i = 0; i < 10; i++) assert.strictEqual(res[i], 5000)
@@ -39,7 +39,7 @@ tman.suite('thunk-ratelimiter-cluster', function () {
     }
 
     function * child (args) {
-      let result = []
+      const result = []
       let res = yield limiter.get(args)
       while (res.remaining >= 0) {
         result.push(res.duration)

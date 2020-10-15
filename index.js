@@ -65,7 +65,7 @@ Limiter.prototype.connect = function (redisClient) {
  * @api public
  */
 Limiter.prototype.get = async function (id) {
-  let args = slice.call(Array.isArray(id) ? id : arguments)
+  const args = slice.call(Array.isArray(id) ? id : arguments)
 
   id = this.prefix + ':' + args[0]
   if (args[1] == null) args[1] = this.max

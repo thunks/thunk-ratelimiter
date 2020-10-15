@@ -28,7 +28,7 @@ tman.suite('thunk-ratelimiter', function () {
   })
 
   tman.beforeEach(function * () {
-    let keys = yield db.keys('LIMIT:*')
+    const keys = yield db.keys('LIMIT:*')
     if (!keys.length) return
     yield db.del.apply(db, keys)
   })
@@ -186,7 +186,7 @@ tman.suite('thunk-ratelimiter', function () {
 
       yield thunk.delay(2100)
       res = yield limiter.get(id)
-      let left = res.reset - Date.now()
+      const left = res.reset - Date.now()
       assert(left > 1000)
       assert(left <= 2000)
       assert.strictEqual(res.remaining, 1)
@@ -209,7 +209,7 @@ tman.suite('thunk-ratelimiter', function () {
 
       yield thunk.delay(2100)
       res = yield limiter.get(id)
-      let left = res.reset - Date.now()
+      const left = res.reset - Date.now()
 
       assert(left > 1000)
       assert(left <= 2000)
@@ -350,7 +350,7 @@ tman.suite('thunk-ratelimiter', function () {
 
     tman.before(function () {
       for (let i = 0; i < clientsCount; ++i) {
-        let limiter = new Limiter({
+        const limiter = new Limiter({
           duration: 10000,
           max: max
         })
@@ -374,8 +374,8 @@ tman.suite('thunk-ratelimiter', function () {
         })
       }
 
-      let res = yield tasks
-      assert.deepEqual(result, res.sort(function (a, b) { return b - a }))
+      const res = yield tasks
+      assert.deepStrictEqual(result, res.sort(function (a, b) { return b - a }))
     })
   })
 
