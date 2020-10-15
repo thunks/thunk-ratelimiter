@@ -14,9 +14,11 @@ const assert = require('assert')
 const tman = require('tman')
 const thunk = require('thunks')()
 const redis = require('thunk-redis')
+const IORedis = require('ioredis')
 const Limiter = require('..')
 
 const db = redis.createClient({ usePromise: true })
+const ioredisDB = new IORedis()
 
 tman.suite('thunk-ratelimiter', function () {
   this.timeout(10000)
@@ -430,6 +432,67 @@ tman.suite('thunk-ratelimiter', function () {
 
       res = yield limiter.get(id, 10, 10000)
       assert.strictEqual(res.remaining, 8)
+    })
+  })
+
+  tman.suite('work with ioredis: limiter', function () {
+    tman.it('get and remove', async function () {
+      const id = 'something'
+      const limiter = new Limiter({
+        max: 5
+      })
+      limiter.connect(ioredisDB)
+
+      let res = await limiter.redis.exists(limiter.prefix + ':' + id)
+      assert.strictEqual(res, 0)
+
+      await limiter.get(id).then(function (res) {
+        assert.strictEqual(res.total, 5)
+      })
+      res = await limiter.redis.exists(limiter.prefix + ':' + id)
+      assert.strictEqual(res, 1)
+
+      await limiter.remove(id).then(function (res) {
+        assert.strictEqual(res, 1)
+      })
+      res = await limiter.redis.exists(limiter.prefix + ':' + id)
+      assert.strictEqual(res, 0)
+
+      await limiter.get(id).then(function (res) {
+        assert.strictEqual(res.total, 5)
+      })
+    })
+  })
+
+  tman.suite('work with ioredis: limit.total', function () {
+    tman.it('should represent the total limit per reset period', function () {
+      const id = 'something'
+      const limiter = new Limiter({
+        max: 5
+      })
+      return limiter.connect(ioredisDB).get(id).then(function (res) {
+        assert.strictEqual(res.total, 5)
+      })
+    })
+  })
+
+  tman.suite('work with ioredis: limit.remaining', function () {
+    tman.it('should represent the number of requests remaining in the reset period', async function () {
+      const id = 'something'
+      const limiter = new Limiter({
+        max: 5,
+        duration: 100000
+      })
+
+      let res = await limiter.connect(db).get(id)
+      assert.strictEqual(res.remaining, 4)
+
+      res = await limiter.get(id)
+      assert.strictEqual(res.remaining, 3)
+
+      res = await limiter.get(id)
+      assert.strictEqual(res.total, 5)
+      assert.strictEqual(res.remaining, 2)
     })
   })
 })
